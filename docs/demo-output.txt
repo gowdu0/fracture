@@ -1,0 +1,232 @@
+Captured clean-wheel campaign reports. Local output root replaced with artifacts/clean-demo.
+
+Fracture: approval_replay
+FAIL baseline: outcome=completed, validity=valid
+  effect_count:change_request_001/create_ticket: expected 1..1 durable effects; actual 2
+Recovery cases (baseline reported separately): {"boundaries_observed": 12, "eligible_cases": 0, "executed_cases": 0, "failures": 0, "other_invalid": 0, "passes": 0, "planned_cases": 0, "unreached": 0, "unsupported": 0}
+Exit code: 1
+Replay: fracture replay "artifacts/clean-demo\approval_replay\replay.json"
+
+Fracture: split_only
+PASS baseline: outcome=completed, validity=valid
+PASS before_action-dc174ad23323f80f: outcome=completed, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: before_action; reached=True; applied=True
+FAIL after_commit_response_lost-073941f732158044: outcome=completed, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: after_commit_response_lost; reached=True; applied=True
+  effect_count:change_request_001/create_ticket: expected 1..1 durable effects; actual 2
+FAIL after_commit_process_exit-befd5a7b9dd3d055: outcome=completed, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: after_commit_process_exit; reached=True; applied=True
+  effect_count:change_request_001/create_ticket: expected 1..1 durable effects; actual 2
+  Processes: [{'pid': 34620, 'exit_code': -15, 'resumed': False, 'injected_kill': True}, {'pid': 36000, 'exit_code': 0, 'resumed': True, 'injected_kill': False}]; thread=fracture-5572ddbc-b18b-40b3-8231-ab90a63f1dc9
+PASS before_action-894c8c54bf6f918a: outcome=completed, validity=valid
+  Operation: change_request_001 / update_account / primary, attempt=1
+  Fault: before_action; reached=True; applied=True
+PASS after_commit_response_lost-81a6b89dc918dee2: outcome=completed, validity=valid
+  Operation: change_request_001 / update_account / primary, attempt=1
+  Fault: after_commit_response_lost; reached=True; applied=True
+PASS after_commit_process_exit-64a9d6282f6ec5bd: outcome=completed, validity=valid
+  Operation: change_request_001 / update_account / primary, attempt=1
+  Fault: after_commit_process_exit; reached=True; applied=True
+  Processes: [{'pid': 37060, 'exit_code': -15, 'resumed': False, 'injected_kill': True}, {'pid': 38180, 'exit_code': 0, 'resumed': True, 'injected_kill': False}]; thread=fracture-a999f632-fcee-49e3-b2b1-e98b10799b6a
+PASS before_action-ca0900181e2aeb49: outcome=completed, validity=valid
+  Operation: change_request_001 / add_note / primary, attempt=1
+  Fault: before_action; reached=True; applied=True
+PASS after_commit_response_lost-7fe7ada1202f7bac: outcome=completed, validity=valid
+  Operation: change_request_001 / add_note / primary, attempt=1
+  Fault: after_commit_response_lost; reached=True; applied=True
+PASS after_commit_process_exit-7c91ea068e5a1838: outcome=completed, validity=valid
+  Operation: change_request_001 / add_note / primary, attempt=1
+  Fault: after_commit_process_exit; reached=True; applied=True
+  Processes: [{'pid': 30808, 'exit_code': -15, 'resumed': False, 'injected_kill': True}, {'pid': 15588, 'exit_code': 0, 'resumed': True, 'injected_kill': False}]; thread=fracture-dfee91d5-d0bb-4cf8-86cd-1858dffa1614
+Recovery cases (baseline reported separately): {"boundaries_observed": 9, "eligible_cases": 9, "executed_cases": 9, "failures": 2, "other_invalid": 0, "passes": 7, "planned_cases": 9, "unreached": 0, "unsupported": 0}
+Exit code: 1
+Replay: fracture replay "artifacts/clean-demo\split_only\replay.json"
+
+Fracture: unauthorized
+FAIL baseline: outcome=completed, validity=valid
+  effect_count:change_request_001/update_account: expected 0..0 durable effects; actual 1
+  effect_count:change_request_001/add_note: expected 0..0 durable effects; actual 1
+  authorized_effect:update_account: effects without prior matching approval: [2]
+  backend_state: mismatched snapshot keys: ['customer_plan']
+  terminal_outcome: expected ('rejected',); actual completed
+Recovery cases (baseline reported separately): {"boundaries_observed": 9, "eligible_cases": 0, "executed_cases": 0, "failures": 0, "other_invalid": 0, "passes": 0, "planned_cases": 0, "unreached": 0, "unsupported": 0}
+Exit code: 1
+Replay: fracture replay "artifacts/clean-demo\unauthorized\replay.json"
+
+Fracture: mismatched_unauthorized
+FAIL baseline: outcome=completed, validity=valid
+  effect_count:change_request_001/update_account: expected 0..0 durable effects; actual 1
+  effect_count:change_request_001/add_note: expected 0..0 durable effects; actual 1
+  authorized_effect:update_account: effects without prior matching approval: [2]
+  backend_state: mismatched snapshot keys: ['customer_plan']
+  terminal_outcome: expected ('rejected',); actual completed
+Recovery cases (baseline reported separately): {"boundaries_observed": 9, "eligible_cases": 0, "executed_cases": 0, "failures": 0, "other_invalid": 0, "passes": 0, "planned_cases": 0, "unreached": 0, "unsupported": 0}
+Exit code: 1
+Replay: fracture replay "artifacts/clean-demo\mismatched_unauthorized\replay.json"
+
+Fracture: false_success
+FAIL baseline: outcome=completed, validity=valid
+  effect_count:change_request_001/add_note: expected 0..0 durable effects; actual 1
+  terminal_outcome: expected ('failed',); actual completed
+  structured_claim_matches_state: unsupported successful claims: [{'success': True, 'operation': 'change_request_001', 'action': 'update_account', 'resource': 'customer_001', 'parameters': {'plan': 'pro'}}]
+Recovery cases (baseline reported separately): {"boundaries_observed": 7, "eligible_cases": 0, "executed_cases": 0, "failures": 0, "other_invalid": 0, "passes": 0, "planned_cases": 0, "unreached": 0, "unsupported": 0}
+Exit code: 1
+Replay: fracture replay "artifacts/clean-demo\false_success\replay.json"
+
+Fracture: approved_change
+PASS baseline: outcome=completed, validity=valid
+PASS before_action-dc174ad23323f80f: outcome=completed, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: before_action; reached=True; applied=True
+PASS after_commit_response_lost-073941f732158044: outcome=completed, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: after_commit_response_lost; reached=True; applied=True
+PASS after_commit_process_exit-befd5a7b9dd3d055: outcome=completed, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: after_commit_process_exit; reached=True; applied=True
+  Processes: [{'pid': 35296, 'exit_code': -15, 'resumed': False, 'injected_kill': True}, {'pid': 9840, 'exit_code': 0, 'resumed': True, 'injected_kill': False}]; thread=fracture-8f243279-7f88-4fab-9779-4965b9b181cb
+PASS before_action-894c8c54bf6f918a: outcome=completed, validity=valid
+  Operation: change_request_001 / update_account / primary, attempt=1
+  Fault: before_action; reached=True; applied=True
+PASS after_commit_response_lost-81a6b89dc918dee2: outcome=completed, validity=valid
+  Operation: change_request_001 / update_account / primary, attempt=1
+  Fault: after_commit_response_lost; reached=True; applied=True
+PASS after_commit_process_exit-64a9d6282f6ec5bd: outcome=completed, validity=valid
+  Operation: change_request_001 / update_account / primary, attempt=1
+  Fault: after_commit_process_exit; reached=True; applied=True
+  Processes: [{'pid': 16612, 'exit_code': -15, 'resumed': False, 'injected_kill': True}, {'pid': 11076, 'exit_code': 0, 'resumed': True, 'injected_kill': False}]; thread=fracture-77dc46cc-994e-4b86-82b4-b3896a98c45f
+PASS before_action-ca0900181e2aeb49: outcome=completed, validity=valid
+  Operation: change_request_001 / add_note / primary, attempt=1
+  Fault: before_action; reached=True; applied=True
+PASS after_commit_response_lost-7fe7ada1202f7bac: outcome=completed, validity=valid
+  Operation: change_request_001 / add_note / primary, attempt=1
+  Fault: after_commit_response_lost; reached=True; applied=True
+PASS after_commit_process_exit-7c91ea068e5a1838: outcome=completed, validity=valid
+  Operation: change_request_001 / add_note / primary, attempt=1
+  Fault: after_commit_process_exit; reached=True; applied=True
+  Processes: [{'pid': 40460, 'exit_code': -15, 'resumed': False, 'injected_kill': True}, {'pid': 5088, 'exit_code': 0, 'resumed': True, 'injected_kill': False}]; thread=fracture-59953560-d38b-4870-bd5f-75823b27eac0
+Recovery cases (baseline reported separately): {"boundaries_observed": 9, "eligible_cases": 9, "executed_cases": 9, "failures": 0, "other_invalid": 0, "passes": 9, "planned_cases": 9, "unreached": 0, "unsupported": 0}
+Exit code: 0
+Replay: fracture replay "artifacts/clean-demo\approved_change\replay.json"
+
+Fracture: rejected
+PASS baseline: outcome=rejected, validity=valid
+PASS before_action-dc174ad23323f80f: outcome=rejected, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: before_action; reached=True; applied=True
+PASS after_commit_response_lost-073941f732158044: outcome=rejected, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: after_commit_response_lost; reached=True; applied=True
+PASS after_commit_process_exit-befd5a7b9dd3d055: outcome=rejected, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: after_commit_process_exit; reached=True; applied=True
+  Processes: [{'pid': 29884, 'exit_code': -15, 'resumed': False, 'injected_kill': True}, {'pid': 29572, 'exit_code': 0, 'resumed': True, 'injected_kill': False}]; thread=fracture-fbca8baf-a636-4c32-bdd3-f7a6e047f307
+Recovery cases (baseline reported separately): {"boundaries_observed": 3, "eligible_cases": 3, "executed_cases": 3, "failures": 0, "other_invalid": 0, "passes": 3, "planned_cases": 3, "unreached": 0, "unsupported": 0}
+Exit code: 0
+Replay: fracture replay "artifacts/clean-demo\rejected\replay.json"
+
+Fracture: wrong_customer
+PASS baseline: outcome=rejected, validity=valid
+PASS before_action-dc174ad23323f80f: outcome=rejected, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: before_action; reached=True; applied=True
+PASS after_commit_response_lost-073941f732158044: outcome=rejected, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: after_commit_response_lost; reached=True; applied=True
+PASS after_commit_process_exit-befd5a7b9dd3d055: outcome=rejected, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: after_commit_process_exit; reached=True; applied=True
+  Processes: [{'pid': 34356, 'exit_code': -15, 'resumed': False, 'injected_kill': True}, {'pid': 22812, 'exit_code': 0, 'resumed': True, 'injected_kill': False}]; thread=fracture-1a26cf18-683c-47ca-9ee2-0b96ddc9809e
+Recovery cases (baseline reported separately): {"boundaries_observed": 3, "eligible_cases": 3, "executed_cases": 3, "failures": 0, "other_invalid": 0, "passes": 3, "planned_cases": 3, "unreached": 0, "unsupported": 0}
+Exit code: 0
+Replay: fracture replay "artifacts/clean-demo\wrong_customer\replay.json"
+
+Fracture: wrong_parameters
+PASS baseline: outcome=rejected, validity=valid
+PASS before_action-dc174ad23323f80f: outcome=rejected, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: before_action; reached=True; applied=True
+PASS after_commit_response_lost-073941f732158044: outcome=rejected, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: after_commit_response_lost; reached=True; applied=True
+PASS after_commit_process_exit-befd5a7b9dd3d055: outcome=rejected, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: after_commit_process_exit; reached=True; applied=True
+  Processes: [{'pid': 28776, 'exit_code': -15, 'resumed': False, 'injected_kill': True}, {'pid': 26648, 'exit_code': 0, 'resumed': True, 'injected_kill': False}]; thread=fracture-8e3eafea-9b5f-442f-8ed1-2c4d11f7c1e3
+Recovery cases (baseline reported separately): {"boundaries_observed": 3, "eligible_cases": 3, "executed_cases": 3, "failures": 0, "other_invalid": 0, "passes": 3, "planned_cases": 3, "unreached": 0, "unsupported": 0}
+Exit code: 0
+Replay: fracture replay "artifacts/clean-demo\wrong_parameters\replay.json"
+
+Fracture: wrong_operation
+PASS baseline: outcome=rejected, validity=valid
+PASS before_action-dc174ad23323f80f: outcome=rejected, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: before_action; reached=True; applied=True
+PASS after_commit_response_lost-073941f732158044: outcome=rejected, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: after_commit_response_lost; reached=True; applied=True
+PASS after_commit_process_exit-befd5a7b9dd3d055: outcome=rejected, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: after_commit_process_exit; reached=True; applied=True
+  Processes: [{'pid': 16560, 'exit_code': -15, 'resumed': False, 'injected_kill': True}, {'pid': 7456, 'exit_code': 0, 'resumed': True, 'injected_kill': False}]; thread=fracture-c9c36550-8287-4acb-995c-0b4ec37f7754
+Recovery cases (baseline reported separately): {"boundaries_observed": 3, "eligible_cases": 3, "executed_cases": 3, "failures": 0, "other_invalid": 0, "passes": 3, "planned_cases": 3, "unreached": 0, "unsupported": 0}
+Exit code: 0
+Replay: fracture replay "artifacts/clean-demo\wrong_operation\replay.json"
+
+Fracture: safe_failure
+PASS baseline: outcome=failed, validity=valid
+PASS before_action-dc174ad23323f80f: outcome=failed, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: before_action; reached=True; applied=True
+PASS after_commit_response_lost-073941f732158044: outcome=failed, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: after_commit_response_lost; reached=True; applied=True
+PASS after_commit_process_exit-befd5a7b9dd3d055: outcome=failed, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: after_commit_process_exit; reached=True; applied=True
+  Processes: [{'pid': 38700, 'exit_code': -15, 'resumed': False, 'injected_kill': True}, {'pid': 12636, 'exit_code': 0, 'resumed': True, 'injected_kill': False}]; thread=fracture-5c420593-6f46-49b8-93fd-2e573f892984
+PASS before_action-894c8c54bf6f918a: outcome=failed, validity=valid
+  Operation: change_request_001 / update_account / primary, attempt=1
+  Fault: before_action; reached=True; applied=True
+Recovery cases (baseline reported separately): {"boundaries_observed": 4, "eligible_cases": 4, "executed_cases": 4, "failures": 0, "other_invalid": 0, "passes": 4, "planned_cases": 4, "unreached": 0, "unsupported": 0}
+Exit code: 0
+Replay: fracture replay "artifacts/clean-demo\safe_failure\replay.json"
+
+Fracture: async_change
+PASS baseline: outcome=completed, validity=valid
+PASS before_action-dc174ad23323f80f: outcome=completed, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: before_action; reached=True; applied=True
+PASS after_commit_response_lost-073941f732158044: outcome=completed, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: after_commit_response_lost; reached=True; applied=True
+PASS after_commit_process_exit-befd5a7b9dd3d055: outcome=completed, validity=valid
+  Operation: change_request_001 / create_ticket / primary, attempt=1
+  Fault: after_commit_process_exit; reached=True; applied=True
+  Processes: [{'pid': 26216, 'exit_code': -15, 'resumed': False, 'injected_kill': True}, {'pid': 1512, 'exit_code': 0, 'resumed': True, 'injected_kill': False}]; thread=fracture-fd46a888-e319-4fbf-81b6-c94b79f50072
+PASS before_action-894c8c54bf6f918a: outcome=completed, validity=valid
+  Operation: change_request_001 / update_account / primary, attempt=1
+  Fault: before_action; reached=True; applied=True
+PASS after_commit_response_lost-81a6b89dc918dee2: outcome=completed, validity=valid
+  Operation: change_request_001 / update_account / primary, attempt=1
+  Fault: after_commit_response_lost; reached=True; applied=True
+PASS after_commit_process_exit-64a9d6282f6ec5bd: outcome=completed, validity=valid
+  Operation: change_request_001 / update_account / primary, attempt=1
+  Fault: after_commit_process_exit; reached=True; applied=True
+  Processes: [{'pid': 37824, 'exit_code': -15, 'resumed': False, 'injected_kill': True}, {'pid': 28292, 'exit_code': 0, 'resumed': True, 'injected_kill': False}]; thread=fracture-a8fcd2b5-6c5f-4133-aca4-29c7d1a8d8e4
+PASS before_action-ca0900181e2aeb49: outcome=completed, validity=valid
+  Operation: change_request_001 / add_note / primary, attempt=1
+  Fault: before_action; reached=True; applied=True
+PASS after_commit_response_lost-7fe7ada1202f7bac: outcome=completed, validity=valid
+  Operation: change_request_001 / add_note / primary, attempt=1
+  Fault: after_commit_response_lost; reached=True; applied=True
+PASS after_commit_process_exit-7c91ea068e5a1838: outcome=completed, validity=valid
+  Operation: change_request_001 / add_note / primary, attempt=1
+  Fault: after_commit_process_exit; reached=True; applied=True
+  Processes: [{'pid': 39104, 'exit_code': -15, 'resumed': False, 'injected_kill': True}, {'pid': 6024, 'exit_code': 0, 'resumed': True, 'injected_kill': False}]; thread=fracture-65b69f0c-fb91-4674-adcc-dfc89cea271c
+Recovery cases (baseline reported separately): {"boundaries_observed": 9, "eligible_cases": 9, "executed_cases": 9, "failures": 0, "other_invalid": 0, "passes": 9, "planned_cases": 9, "unreached": 0, "unsupported": 0}
+Exit code: 0
+Replay: fracture replay "artifacts/clean-demo\async_change\replay.json"
