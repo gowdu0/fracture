@@ -1,0 +1,51 @@
+name: Recovery tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.12.10'
+          enable-cache: true
+      - run: uv sync --frozen --python ${{ matrix.python }}
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+      - run: uv run pytest
+      - run: uv run fracture demo --output artifacts/ci-demo
+      - run: uv run fracture replay artifacts/ci-demo/approved_change/replay.json --output artifacts/ci-replay
+      - run: uv run pytest examples/test_existing_workflow.py
+      - run: uv build
+      - name: Verify wheel installation in clean environment
+        shell: bash
+        run: |
+          uv venv .clean --python ${{ matrix.python }}
+          if [ -f .clean/Scripts/python.exe ]; then
+            clean_python=.clean/Scripts/python.exe
+          else
+            clean_python=.clean/bin/python
+          fi
+          uv pip install --python "$clean_python" dist/fracture_recovery-0.1.0-py3-none-any.whl
+          "$clean_python" -m fracture.cli test fracture.demo:approved_change --output artifacts/wheel-campaign
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evidence-${{ matrix.os }}-${{ matrix.python }}
+          path: artifacts/
+          retention-days: 7
