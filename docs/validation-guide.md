@@ -26,8 +26,9 @@ runtime exports. If repeating, use a fresh output path and pass
 `--install-evidence <that path>` to the audit helper. The helpers validate
 sdist/wheel metadata and contents, record SHA-256 hashes, compare rebuild bytes,
 and install each artifact into a fresh temporary environment outside the checkout.
-They copy the example rather than importing source from the checkout, invoke the
-actual console executable with Git absent from PATH, and assert dev packages are
+They read only the four required example files from the built sdist for both
+installation paths, invoke the actual console executable with Git absent from PATH,
+and assert dev packages are
 absent. They test positive/negative replay, downstream typing (in a separate mypy
 tool environment), then install pytest separately and run the example tests.
 

@@ -1,5 +1,40 @@
 # Validation evidence
 
+## Submission validation: 2026-10-05
+
+Reviewed the committed adoption/release slice at
+`0efe485eb8f76b8ac02eb59f1ea6d62f4328c676` against the original main base
+`ab2eab4571eabffb39b6b962b916aad46fa07c39`. The checkout was clean and both
+review fixes were already present. Required sdist files are read as unique regular
+archive members; both artifact installation paths use those shipped bytes, with no
+checkout fallback. Missing package markers/files, duplicate members and links have
+focused regression coverage. The checklist retains separately approved TestPyPI
+and PyPI publication, explicit dependency sources, post-publication verification
+and authorized failure handling.
+
+New local results on Windows, CPython 3.13.2, uv 0.12.23, using `.venv-release`:
+
+- Frozen sync, Ruff lint and formatting passed; mypy passed for 11 source files.
+- Focused release-checker suite: **7 passed in 0.24 seconds**.
+- Full behavioral suite: **54 passed in 89.67 seconds**; the 47-test result below
+  belongs to an earlier run before the release-checker tests were added.
+
+Fresh artifact validation uses `artifacts/submit-install/` and
+`artifacts/submit-reproducible.json`; the generated JSON records actual installation
+results and exact compared artifact hashes. These outputs, environments and caches
+are excluded from source control. The release gate inspects metadata/contents,
+installs the wheel and sdist outside the checkout without Git or dev dependencies,
+runs the real console script with corrected/negative campaigns and replay, checks
+consumer typing and exit-2 diagnostics, then installs pytest separately and tests
+the shipped example. The byte comparison is limited to successive local builds.
+
+The full demo and dependency audit results below are saved historical evidence,
+not new executions for this submission. Only campaigns/replay required by the
+artifact gate are repeated. Remote matrix results must be checked against the
+submitted branch head; local Windows results do not establish Linux or Python 3.12
+coverage. No package, tag or release is published by this validation, and genuine
+independent integration remains outstanding.
+
 ## Adoption/release slice: 2026-10-05
 
 Starting checkout verified at `ab2eab4571eabffb39b6b962b916aad46fa07c39`.
