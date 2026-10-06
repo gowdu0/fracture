@@ -1,0 +1,110 @@
+Synthetic MIT order workflow: pytest evidence, durable writes, explicit recovery.
+$ python -m pytest artifacts\evidence-recording-final-code\test_negative.py --tb=short -q --basetemp artifacts\evidence-recording-final-code\pytest-temp
+F                                                                        [100%]
+================================== FAILURES ===================================
+___________________________ test_duplicate_shipment ___________________________
+artifacts\evidence-recording-final-code\test_negative.py:5: in test_duplicate_shipment
+    assert_campaign(non_idempotent(), tmp_path / 'campaign')
+src\fracture\testing.py:12: in assert_campaign
+    assert report.exit_code == 0, render_evidence(report, artifact=Path(output) / "report.json")
+           ^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Fracture evidence: non_idempotent
+E   Baseline: PASS
+E   Recovery: 1/3 passing; 0 invalid
+E   PASS baseline: completed; validity=valid
+E     Operation/site/occurrence: order-001 / ship / shipment
+E     Action attempts=1; durable effects=1 (fixture snapshot total)
+E   PASS before_action-c67aa396d51328f4: completed; validity=valid
+E     order-001 / ship / shipment; target attempt=1; reached=True, applied=True
+E     Action attempts=2; durable effects=1 (fixture snapshot total)
+E   FAIL after_commit_response_lost-e015574916e46977: completed; validity=valid
+E     order-001 / ship / shipment; target attempt=1; reached=True, applied=True
+E     Action attempts=2; durable effects=2 (fixture snapshot total)
+E     Assertion effect_count:order-001/ship: expected 1..1 durable effects; actual 2
+E   FAIL after_commit_process_exit-8f98c16039ec4f03: completed; validity=valid
+E     order-001 / ship / shipment; target attempt=1; reached=True, applied=True
+E     Action attempts=2; durable effects=2 (fixture snapshot total)
+E     Confirmed kill/restart/checkpoint continuity: yes/yes/yes
+E     Assertion effect_count:order-001/ship: expected 1..1 durable effects; actual 2
+E   Report: <checkout>\artifacts\evidence-recording-final-code\pytest-temp\test_duplicate_shipment0\campaign\report.json
+E   Timeline/case stores: <checkout>\artifacts\evidence-recording-final-code\pytest-temp\test_duplicate_shipment0\campaign
+E   Replay artifact: <checkout>\artifacts\evidence-recording-final-code\pytest-temp\test_duplicate_shipment0\campaign\replay.json
+=========================== short test summary info ===========================
+FAILED artifacts/evidence-recording-final-code/test_negative.py::test_duplicate_shipment
+1 failed in 15.74s
+[actual exit=1; elapsed=18.304s]
+$ python -m examples.demo_recovery --output artifacts\evidence-recording-final-code\demo
+Fracture evidence: non_idempotent
+Baseline: PASS
+Recovery: 1/3 passing; 0 invalid
+PASS baseline: completed; validity=valid
+  Operation/site/occurrence: order-001 / ship / shipment
+  Action attempts=1; durable effects=1 (fixture snapshot total)
+PASS before_action-c67aa396d51328f4: completed; validity=valid
+  order-001 / ship / shipment; target attempt=1; reached=True, applied=True
+  Action attempts=2; durable effects=1 (fixture snapshot total)
+FAIL after_commit_response_lost-e015574916e46977: completed; validity=valid
+  order-001 / ship / shipment; target attempt=1; reached=True, applied=True
+  Action attempts=2; durable effects=2 (fixture snapshot total)
+  Assertion effect_count:order-001/ship: expected 1..1 durable effects; actual 2
+FAIL after_commit_process_exit-8f98c16039ec4f03: completed; validity=valid
+  order-001 / ship / shipment; target attempt=1; reached=True, applied=True
+  Action attempts=2; durable effects=2 (fixture snapshot total)
+  Confirmed kill/restart/checkpoint continuity: yes/yes/yes
+  Assertion effect_count:order-001/ship: expected 1..1 durable effects; actual 2
+Report: artifacts\evidence-recording-final-code\demo\negative\report.json
+Timeline/case stores: artifacts\evidence-recording-final-code\demo\negative
+Replay artifact: <checkout>\artifacts\evidence-recording-final-code\demo\negative\replay.json
+
+Fracture evidence: corrected
+Baseline: PASS
+Recovery: 3/3 passing; 0 invalid
+PASS baseline: completed; validity=valid
+  Operation/site/occurrence: order-001 / ship / shipment
+  Action attempts=1; durable effects=1 (fixture snapshot total)
+PASS before_action-c67aa396d51328f4: completed; validity=valid
+  order-001 / ship / shipment; target attempt=1; reached=True, applied=True
+  Action attempts=2; durable effects=1 (fixture snapshot total)
+PASS after_commit_response_lost-e015574916e46977: completed; validity=valid
+  order-001 / ship / shipment; target attempt=1; reached=True, applied=True
+  Action attempts=2; durable effects=1 (fixture snapshot total)
+PASS after_commit_process_exit-8f98c16039ec4f03: completed; validity=valid
+  order-001 / ship / shipment; target attempt=1; reached=True, applied=True
+  Action attempts=2; durable effects=1 (fixture snapshot total)
+  Confirmed kill/restart/checkpoint continuity: yes/yes/yes
+Report: artifacts\evidence-recording-final-code\demo\corrected\report.json
+Timeline/case stores: artifacts\evidence-recording-final-code\demo\corrected
+Replay artifact: <checkout>\artifacts\evidence-recording-final-code\demo\corrected\replay.json
+
+PASS corrected replay: all cases, durable effects and checkpoint continuation verified
+PASS educational driver; elapsed=39.433s; evidence=<checkout>\artifacts\evidence-recording-final-code\demo
+[actual exit=0; elapsed=41.918s]
+$ python -m fracture.cli inspect artifacts\evidence-recording-final-code\demo\negative\report.json --case after_commit_process_exit-8f98c16039ec4f03
+Fracture evidence: non_idempotent
+Baseline: PASS
+Recovery: 1/3 passing; 0 invalid
+FAIL after_commit_process_exit-8f98c16039ec4f03: completed; validity=valid
+  order-001 / ship / shipment; target attempt=1; reached=True, applied=True
+  Action attempts=2; durable effects=2 (fixture snapshot total)
+  Confirmed kill/restart/checkpoint continuity: yes/yes/yes
+  Assertion effect_count:order-001/ship: expected 1..1 durable effects; actual 2
+Report: artifacts\evidence-recording-final-code\demo\negative\report.json
+Timeline/case stores: artifacts\evidence-recording-final-code\demo\negative
+Replay artifact: <checkout>\artifacts\evidence-recording-final-code\demo\negative\replay.json
+[actual exit=1; elapsed=2.307s]
+$ python -m fracture.cli inspect artifacts\evidence-recording-final-code\demo\corrected\report.json --case after_commit_process_exit-8f98c16039ec4f03
+Fracture evidence: corrected
+Baseline: PASS
+Recovery: 3/3 passing; 0 invalid
+PASS after_commit_process_exit-8f98c16039ec4f03: completed; validity=valid
+  order-001 / ship / shipment; target attempt=1; reached=True, applied=True
+  Action attempts=2; durable effects=1 (fixture snapshot total)
+  Confirmed kill/restart/checkpoint continuity: yes/yes/yes
+Report: artifacts\evidence-recording-final-code\demo\corrected\report.json
+Timeline/case stores: artifacts\evidence-recording-final-code\demo\corrected
+Replay artifact: <checkout>\artifacts\evidence-recording-final-code\demo\corrected\replay.json
+[actual exit=0; elapsed=1.844s]
+Two attempts can produce one durable effect. Inspect reads artifacts; replay executes.
+Independent integration remains outstanding. No production safety guarantee.
+[presentation hold=19.601s; no execution waiting removed or sped up]
+[recording elapsed=84.001s]

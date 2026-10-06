@@ -41,7 +41,9 @@ Linux or `$env:PYTHONPATH = (Get-Location).Path` in PowerShell, then:
 
 ```console
 python -m pytest examples/test_existing_workflow.py
+python -m examples.demo_recovery --output artifacts/order-demo
 fracture test examples.order_adapter:corrected --output artifacts/orders
+fracture inspect artifacts/orders/report.json
 fracture replay artifacts/orders/replay.json --output artifacts/orders-replay
 fracture test examples.order_adapter:non_idempotent --output artifacts/negative
 ```
@@ -63,6 +65,17 @@ not a production safety guarantee. [Validation](docs/validation-guide.md) and th
 
 The existing offline support demo remains available as `fracture demo`; it requires
 no model credentials and exercises deterministic workflow execution machinery.
+
+The narrow [pytest evidence and recording walkthrough](docs/pytest-evidence.md)
+shows installation, application wiring, actual terminal output and unposted social
+drafts. `fracture inspect REPORT_JSON [--case CASE_ID]` reads schema-v1 JSON only:
+it never imports the saved scenario or executes replay. Case selection limits display,
+not campaign validity: exit **0** means all required cases passed, **1** means a valid
+report has assertion failures, and **2** means malformed/incompatible data, invalid
+cases, missing assertion evidence or an unknown case. Mixed invalid/failed cases return 2.
+Plain output escapes terminal controls and omits snapshot/result/event payloads.
+Assertion details and labels can still contain sensitive information; this is not
+universal redaction. Keep full artifacts private and review captures before sharing.
 
 ## What the demonstration establishes
 
