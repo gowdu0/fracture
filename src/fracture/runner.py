@@ -84,8 +84,18 @@ def _evaluate(scenario: Scenario, report: CaseReport) -> None:
             report.diagnostic += f" assertion {name} errored: {type(error).__name__}: {error}"
 
 
+def _new_directory(directory: Path) -> None:
+    try:
+        directory.mkdir(parents=True, exist_ok=False)
+    except FileExistsError as error:
+        raise FileExistsError(
+            f"output directory already exists: {directory}; "
+            "choose a fresh directory to preserve evidence"
+        ) from error
+
+
 def run_case(scenario: Scenario, directory: Path, fault: FaultCase | None = None) -> CaseReport:
-    directory.mkdir(parents=True, exist_ok=False)
+    _new_directory(directory)
     report = CaseReport(
         id="baseline" if fault is None else fault.id,
         fault=fault,
@@ -94,6 +104,16 @@ def run_case(scenario: Scenario, directory: Path, fault: FaultCase | None = None
     journal = Journal(directory / "controller.sqlite")
     journal.initialize()
     try:
+        for method in (
+            "prepare",
+            "inspect",
+            "describe",
+            "supports",
+            "verify_commit",
+            "record_approval",
+        ):
+            if not callable(getattr(scenario.backend, method, None)):
+                raise ValueError(f"backend fixture must implement callable {method}()")
         scenario.backend.prepare(directory)
         report.initial = scenario.backend.inspect(directory)
         if fault and not scenario.backend.supports(fault.site, fault.kind):
@@ -102,7 +122,14 @@ def run_case(scenario: Scenario, directory: Path, fault: FaultCase | None = None
         else:
             # Assertions run in the parent, so normal local pytest assertion closures are supported.
             worker_scenario = replace(scenario, assertions=())
-            pickle.dumps(worker_scenario)
+            try:
+                pickle.dumps(worker_scenario)
+            except (pickle.PicklingError, AttributeError, TypeError) as error:
+                raise ValueError(
+                    "spawn requires importable module-level workflow factories and fixture/driver "
+                    "classes; avoid lambdas/local factories and guard script entrypoints with "
+                    "if __name__ == '__main__'"
+                ) from error
             ctx = mp.get_context("spawn")
             deadline = time.monotonic() + scenario.budgets.seconds
             restarts = 0
@@ -253,7 +280,7 @@ def run_campaign(
     from .reports import write_artifacts
 
     output = Path(output).resolve()
-    output.mkdir(parents=True, exist_ok=False)
+    _new_directory(output)
     report = CampaignReport(
         scenario=scenario.name,
         configuration={

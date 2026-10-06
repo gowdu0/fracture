@@ -1,0 +1,29 @@
+name: Prepare release candidate (no publication)
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Proposed version tag (v plus pyproject version)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  agreement:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Validate proposed tag and selected source
+        env:
+          PROPOSED_TAG: ${{ inputs.tag }}
+        run: |
+          python -c "import os,tomllib; v=tomllib.load(open('pyproject.toml','rb'))['project']['version']; assert os.environ['PROPOSED_TAG']=='v'+v; ref=os.environ['GITHUB_REF']; assert not ref.startswith('refs/tags/') or ref=='refs/tags/v'+v; print('Candidate', v, os.environ['GITHUB_SHA'])"
+  validation:
+    needs: agreement
+    uses: ./.github/workflows/ci.yml

@@ -10,26 +10,59 @@ safety, arbitrary business correctness, exhaustive coverage, or commercial deman
 
 ## Quick start
 
-Python 3.12 or 3.13, Windows or Linux. Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then:
+Python 3.12 or 3.13; tested scope is sequential LangGraph 1.2.11 with SQLite
+checkpointer 3.1.1 on Windows/Linux. Use an isolated environment. The distribution
+is **fracture-recovery**; the import and console script are **fracture**. Do not
+coinstall the unrelated PyPI `fracture` package, which owns the same import namespace.
+Nothing is published to PyPI. A future `pip install fracture-recovery` command is
+conditional on an approved publication.
+
+From a reviewed checkout, build a wheel (`uv sync --frozen`, `uv build`), then in
+your existing supported project:
 
 ```console
-git clone https://github.com/gowdu0/fracture.git
-cd fracture
-uv sync --frozen
-uv run fracture demo
-uv run fracture test fracture.demo:approved_change --output artifacts/run
-uv run fracture replay artifacts/run/replay.json
-uv run pytest
+python -m venv .venv
+# Activate .venv using the command appropriate for your shell.
+python -m pip install /absolute/path/to/fracture_recovery-0.1.0-py3-none-any.whl
+python -m pip install "pytest>=9,<10"
 ```
 
-Alternatively, `python -m pip install .` installs the library and CLI from the
-repository. Nothing is published to PyPI. The distribution is `fracture-recovery`;
-the import and executable are `fracture`. An unrelated `fracture` distribution
-already exists on PyPI; do not install that to obtain this project.
+An exact-source install of the verified starting baseline is also available:
+`python -m pip install "fracture-recovery @ git+https://github.com/gowdu0/fracture.git@ab2eab4571eabffb39b6b962b916aad46fa07c39"`.
+That baseline predates the synthetic example and Git-free replay fix; build this
+reviewed slice's wheel to obtain them. Once committed, substitute its reviewed
+commit for an exact-revision install of the new slice.
 
-The demo runs offline after installation, with no model credentials. It exercises
-an agent workflow's execution machinery using deterministic Python decisions.
-Each command needs a **new output directory**; existing artifacts are preserved.
+Copy the source archive's `examples/` into your project for the runnable synthetic
+order application and separate adapter. It imports no demo or private context state.
+Make your application package importable (install it, or set `PYTHONPATH` to its
+parent directory). For this copied example, use `export PYTHONPATH="$PWD"` on
+Linux or `$env:PYTHONPATH = (Get-Location).Path` in PowerShell, then:
+
+```console
+python -m pytest examples/test_existing_workflow.py
+fracture test examples.order_adapter:corrected --output artifacts/orders
+fracture replay artifacts/orders/replay.json --output artifacts/orders-replay
+fracture test examples.order_adapter:non_idempotent --output artifacts/negative
+```
+
+The negative control intentionally returns **1**: baseline and before-action pass,
+while committed-response loss and a real worker kill duplicate a durable shipment.
+The corrected control atomically deduplicates by stable order identity and returns
+**0** for baseline, all three faults and replay. **2** means invalid/configuration or
+infrastructure failure. Every command needs a **new output directory**.
+
+This example is explicitly synthetic, MIT-licensed under this repository, and is
+not independent adoption evidence. See [integration](docs/integration.md) for the
+fixture, authoritative commit verifier, checkpoint wiring and recovery policy you
+must supply. Scenarios and replay execute trusted Python without sandboxing; use
+only disposable backend data. Artifacts can contain application state or secrets.
+The candidate is for controlled development/CI testing of production applications,
+not a production safety guarantee. [Validation](docs/validation-guide.md) and the
+[release checklist](docs/release-checklist.md) describe the publication boundary.
+
+The existing offline support demo remains available as `fracture demo`; it requires
+no model credentials and exercises deterministic workflow execution machinery.
 
 ## What the demonstration establishes
 
@@ -78,14 +111,14 @@ This makes planted defects useful CI tests without redefining normal test succes
 ## Python and pytest integration
 
 ```python
-from fracture.demo import approved_change
+from examples.order_adapter import corrected
 from fracture.testing import assert_campaign
 
 
 def test_recovery(tmp_path):
-    scenario = approved_change()
+    scenario = corrected()
     report = assert_campaign(scenario, tmp_path / "campaign")
-    assert report.summary["passes"] == 9
+    assert report.summary["passes"] == 3
 ```
 
 For your own workflow, supply a `Scenario` with a workflow factory, resettable
@@ -104,8 +137,8 @@ visibility and support only `before_action` injection.
 
 The working [integration contract](docs/integration.md) describes all interfaces,
 snapshot fields, custom assertions, and subprocess constraints. A small
-[pytest example](examples/test_existing_workflow.py) reuses the demo factory; it is
-an API example, not independent validation.
+[pytest example](examples/test_existing_workflow.py) exercises the synthetic order
+application through a separate public-API adapter; independent adoption remains outstanding.
 
 ## Fault placement and recovery
 

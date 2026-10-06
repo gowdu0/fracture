@@ -1,6 +1,43 @@
-# Prospective-user validation guide
+# Adoption and release validation guide
 
-This is a guide for future trials, not evidence that users have completed them.
+The README install-to-test path uses a synthetic external-style example, not proof
+of independent adoption. For a reviewed source checkout, run:
+
+```console
+uv sync --frozen
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy
+uv run pytest
+uv run pytest examples/test_existing_workflow.py
+# Make the example importable: PYTHONPATH=project root (see README shell commands).
+uv run fracture test examples.order_adapter:corrected --output artifacts/orders
+uv run fracture replay artifacts/orders/replay.json --output artifacts/orders-replay
+uv run fracture demo --output artifacts/full-demo
+uv build
+uv run python scripts/check_reproducible.py
+uv run python scripts/check_release.py --output artifacts/install-check
+uv run python scripts/audit_runtime.py --output artifacts/audit
+```
+
+Every output must be fresh, including `artifacts/reproducible.json`. Keep artifact
+checks under `artifacts/install-check` so the audit helper can find both resolved
+runtime exports. If repeating, use a fresh output path and pass
+`--install-evidence <that path>` to the audit helper. The helpers validate
+sdist/wheel metadata and contents, record SHA-256 hashes, compare rebuild bytes,
+and install each artifact into a fresh temporary environment outside the checkout.
+They copy the example rather than importing source from the checkout, invoke the
+actual console executable with Git absent from PATH, and assert dev packages are
+absent. They test positive/negative replay, downstream typing (in a separate mypy
+tool environment), then install pytest separately and run the example tests.
+
+CI retains Windows/Linux × Python 3.12/3.13. Local evidence states exact environments;
+workflow changes are not remote CI results. Audit failures and unavailable environments
+must be recorded. See the release checklist before any publication.
+
+## Trials of independently authored applications
+
+This remains a guide for future trials, not evidence that users have completed them.
 
 1. Choose an existing sequential LangGraph test with a meaningful durable write.
    Identify the logical operation, its expected effect count, and any approval binding.
