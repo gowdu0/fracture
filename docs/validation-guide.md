@@ -10,6 +10,8 @@ uv run ruff format --check .
 uv run mypy
 uv run pytest
 uv run pytest examples/test_existing_workflow.py
+uv run python -m examples.demo_recovery --output artifacts/order-demo
+uv run fracture inspect artifacts/order-demo/corrected/report.json
 # Make the example importable: PYTHONPATH=project root (see README shell commands).
 uv run fracture test examples.order_adapter:corrected --output artifacts/orders
 uv run fracture replay artifacts/orders/replay.json --output artifacts/orders-replay
@@ -26,10 +28,11 @@ runtime exports. If repeating, use a fresh output path and pass
 `--install-evidence <that path>` to the audit helper. The helpers validate
 sdist/wheel metadata and contents, record SHA-256 hashes, compare rebuild bytes,
 and install each artifact into a fresh temporary environment outside the checkout.
-They read only the four required example files from the built sdist for both
+They read only the five required example files from the built sdist for both
 installation paths, invoke the actual console executable with Git absent from PATH,
 and assert dev packages are
-absent. They test positive/negative replay, downstream typing (in a separate mypy
+absent. They test positive/negative replay and installed read-only inspection
+(including exit 0/1/2), downstream typing (in a separate mypy
 tool environment), then install pytest separately and run the example tests.
 
 CI retains Windows/Linux × Python 3.12/3.13. Local evidence states exact environments;

@@ -26,11 +26,12 @@ EXAMPLE_FILES = (
     "order_app.py",
     "order_adapter.py",
     "test_existing_workflow.py",
+    "demo_recovery.py",
 )
 
 
 def read_sdist_examples(sdist: Path) -> dict[str, bytes]:
-    """Read only the four required regular members; never extract archive paths."""
+    """Read only required regular example members; never extract archive paths."""
     prefix = sdist.name.removesuffix(".tar.gz")
     examples = {}
     with tarfile.open(sdist) as archive:
@@ -183,6 +184,64 @@ def main():
             )
             spec = json.loads((destination / "campaign/replay.json").read_text())
             assert spec["fingerprint"]["source_revision"] is None
+            inspection_workspace = workspace / "inspection"
+            inspection_workspace.mkdir()
+            inspection_env = {**env, "PYTHONPATH": ""}
+            run(
+                [
+                    str(python),
+                    "-c",
+                    "import importlib.util; assert importlib.util.find_spec('examples') is None",
+                ],
+                cwd=inspection_workspace,
+                env=inspection_env,
+            )
+            run(
+                [str(cli), "inspect", str(destination / "campaign/report.json")],
+                cwd=inspection_workspace,
+                env=inspection_env,
+            )
+            run(
+                [
+                    str(cli),
+                    "inspect",
+                    str(destination / "campaign/report.json"),
+                    "--case",
+                    "baseline",
+                ],
+                cwd=inspection_workspace,
+                env=inspection_env,
+            )
+            run(
+                [
+                    str(cli),
+                    "inspect",
+                    str(destination / "campaign/report.json"),
+                    "--case",
+                    "unknown",
+                ],
+                cwd=inspection_workspace,
+                env=inspection_env,
+                expected=2,
+            )
+            malformed = destination / "malformed-report.json"
+            malformed.write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "scenario": "invalid",
+                        "cases": [],
+                        "unexpected": {"password": "payload-must-not-appear"},
+                    }
+                )
+            )
+            text = run(
+                [str(cli), "inspect", str(malformed)],
+                cwd=inspection_workspace,
+                env=inspection_env,
+                expected=2,
+            )
+            assert "payload-must-not-appear" not in text
             run(
                 [
                     str(cli),
@@ -261,6 +320,12 @@ def main():
                 ],
                 cwd=workspace,
                 env=env,
+                expected=1,
+            )
+            run(
+                [str(cli), "inspect", str(destination / "negative/report.json")],
+                cwd=inspection_workspace,
+                env=inspection_env,
                 expected=1,
             )
             run(

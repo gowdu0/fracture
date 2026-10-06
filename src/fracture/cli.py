@@ -9,12 +9,35 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
-from .reports import load_scenario, render_report
+from .reports import (
+    inspection_exit_code,
+    load_scenario,
+    read_report,
+    render_evidence,
+    render_report,
+    terminal_text,
+)
 from .reports import replay as replay_run
 from .runner import run_campaign
 
 app = typer.Typer(no_args_is_help=True, pretty_exceptions_enable=False)
 console = Console()
+
+
+@app.command("inspect")
+def inspect_report(
+    report_json: Path,
+    case: Annotated[str | None, typer.Option("--case")] = None,
+) -> None:
+    """Read schema-v1 evidence only. Exit 0=pass, 1=assertions failed, 2=invalid/unknown."""
+    try:
+        report = read_report(report_json)
+        text = render_evidence(report, case_id=case, artifact=report_json)
+    except (OSError, ValueError) as error:
+        typer.echo(f"Inspection error: {terminal_text(error)}")
+        raise typer.Exit(2) from error
+    typer.echo(text, nl=False)
+    raise typer.Exit(inspection_exit_code(report))
 
 
 @app.command()
