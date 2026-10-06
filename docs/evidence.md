@@ -1,5 +1,116 @@
 # Validation evidence
 
+## Submission validation: 2026-10-05
+
+Reviewed the committed adoption/release slice at
+`0efe485eb8f76b8ac02eb59f1ea6d62f4328c676` against the original main base
+`ab2eab4571eabffb39b6b962b916aad46fa07c39`. The checkout was clean and both
+review fixes were already present. Required sdist files are read as unique regular
+archive members; both artifact installation paths use those shipped bytes, with no
+checkout fallback. Missing package markers/files, duplicate members and links have
+focused regression coverage. The checklist retains separately approved TestPyPI
+and PyPI publication, explicit dependency sources, post-publication verification
+and authorized failure handling.
+
+New local results on Windows, CPython 3.13.2, uv 0.12.23, using `.venv-release`:
+
+- Frozen sync, Ruff lint and formatting passed; mypy passed for 11 source files.
+- Focused release-checker suite: **7 passed in 0.24 seconds**.
+- Full behavioral suite: **54 passed in 89.67 seconds**; the 47-test result below
+  belongs to an earlier run before the release-checker tests were added.
+
+Fresh artifact validation uses `artifacts/submit-install/` and
+`artifacts/submit-reproducible.json`; the generated JSON records actual installation
+results and exact compared artifact hashes. These outputs, environments and caches
+are excluded from source control. The release gate inspects metadata/contents,
+installs the wheel and sdist outside the checkout without Git or dev dependencies,
+runs the real console script with corrected/negative campaigns and replay, checks
+consumer typing and exit-2 diagnostics, then installs pytest separately and tests
+the shipped example. The byte comparison is limited to successive local builds.
+
+The full demo and dependency audit results below are saved historical evidence,
+not new executions for this submission. Only campaigns/replay required by the
+artifact gate are repeated. Remote matrix results must be checked against the
+submitted branch head; local Windows results do not establish Linux or Python 3.12
+coverage. No package, tag or release is published by this validation, and genuine
+independent integration remains outstanding.
+
+## Adoption/release slice: 2026-10-05
+
+Starting checkout verified at `ab2eab4571eabffb39b6b962b916aad46fa07c39`.
+The supplied workspace was an empty Git repository; origin was fetched and a
+`codex/adoption-release` branch created at that exact commit, without resetting user files.
+No applicable AGENTS.md was found. New code remains reviewable as local changes.
+
+Local environment: Windows, CPython **3.13.2**, uv **0.12.23**. The frozen environment
+was recreated as `.venv-release` after Windows denied removal of a dependency's
+license directory in `.venv`. The interrupted old demo is not acceptance evidence.
+The default pytest temp root also denied access; fresh writable `--basetemp` paths
+under the existing `artifacts/` parent were used. No permission bypass or deletion
+of user files was performed.
+
+- Frozen sync, Ruff check, formatting check and mypy passed (11 source files).
+- Final behavioral suite: **47 passed in 103.78 seconds**, including sync/async,
+  negative controls, replay compatibility, forged receipt rejection, missing Git,
+  import diagnostics, spawn pickling, fixture contracts and evidence preservation.
+- Replacement synthetic pytest example: **3 passed in 33.87 seconds**.
+- Measured console campaigns: corrected **11.980 s / exit 0**, non-idempotent
+  **11.548 s / exit 1**, corrected replay **10.761 s / exit 0**. These are observed
+  wall times including spawn overhead, not performance guarantees.
+- Corrected: baseline plus all three faults pass. Negative: baseline and before-action
+  pass; committed-response loss and actual process termination yield two shipments
+  and valid assertion failures. Replay preserves each control's exit semantics.
+- One synthetic application file / **49 lines**, one adapter file / **83 lines**,
+  one pytest file / **33 lines**, and a **1-line** package marker. Counts include
+  blanks, comments and fixture/verification/policy code; no integration code is hidden.
+  Covered scope: **1 write site, 3 fault boundaries**, two business assertions.
+- Application hooks: a write callback, optional checkpointer argument and one node
+  that delegates to the callback. Correctness also requires the application's atomic
+  operation-ID deduplication. These hooks were authored into the synthetic app;
+  changes to a separately authored application cannot be measured or claimed here.
+
+Detailed generated evidence is kept locally under `artifacts/` (excluded from Git):
+`integration-measurements.json`, measured campaign/replay directories,
+`full-demo-final/demo.json`, `install-check-final-2/build-evidence.json`, `reproducible-final-2.json`
+and `audit-final/*.json`. The release helpers record final artifact hashes and actual
+install/audit results; do not infer results from workflow definitions alone. CI
+now retains these artifacts plus wheel/sdist files for seven days.
+
+The strengthened install check validates both artifacts, runtime dependency metadata,
+MIT license, typing marker and packaged example sources. It exercises the actual console
+script, corrected and negative campaigns/replays, exit-2 invalid inputs and fresh-output
+preservation outside the repository with Git absent and no dev packages. Separate mypy
+consumer checks test accepted and rejected Scenario assignments; pytest is installed
+only after the runtime checks. Both locked and fresh resolver exports are audited as complete pinned transitive lists
+with `--no-deps --disable-pip`. The resolver-based scan omitted packaging; a direct
+scan includes it. The unpublished project itself is not in the advisory index.
+
+Initial pip-audit 2.10.1 scan found **3 advisories** in locked urllib3 2.7.0:
+PYSEC-2026-4175, PYSEC-2026-4176 and PYSEC-2026-4177. Upstream fixes are in 2.8.0:
+[proxy TLS configuration](https://github.com/urllib3/urllib3/security/advisories/GHSA-8988-9cw3-xx77),
+[Deflate streaming loop](https://github.com/urllib3/urllib3/security/advisories/GHSA-gh4c-6fx4-qh6g),
+[chunk-size memory buffering](https://github.com/urllib3/urllib3/security/advisories/GHSA-vxq7-64xx-v4gw).
+The lock updates only urllib3's resolved version; distribution metadata adds
+`urllib3>=2.8,<3` so consumers retain the security floor. LangGraph/checkpointer,
+Pydantic and Python compatibility pins are unchanged. uv's lock revision advances
+with the locally used tool; CI now uses that same uv version. Post-fix audit JSON is
+retained for the locked export and each separately resolved artifact installation.
+Advisory scans are time-dependent and not a security guarantee; service failures block
+approval rather than being reported as clean scans.
+
+The preserved Windows/Linux × Python 3.12/3.13 matrix has **not been executed remotely
+for these local changes**. Only Windows/Python 3.13.2 was executed locally; Python
+3.12 and Linux results remain pending remote CI. The baseline's passed matrix is
+not evidence for this new slice. No tags, credentials, releases or publication were
+created. Version stays 0.1.0; [release checklist](release-checklist.md) requires
+explicit approval for publication and retains unresolved limits.
+
+Genuine independent integration remains incomplete. The next milestone is a
+licensed, separately authored workflow with existing durable writes; current
+friction justified narrow diagnostics, not a generic adapter framework or a UI.
+
+## Historical baseline evidence
+
 Recorded 2026-09-07 on Windows, CPython 3.12.14.
 
 ## Observed local results

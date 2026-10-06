@@ -21,7 +21,13 @@ def load_scenario(target: str) -> Scenario:
     module, separator, name = target.partition(":")
     if not separator or not module or not name:
         raise ValueError("scenario target must be module:attribute")
-    value = getattr(importlib.import_module(module), name)
+    try:
+        value = getattr(importlib.import_module(module), name)
+    except (ImportError, AttributeError) as error:
+        raise ValueError(
+            f"cannot load scenario {target!r}: {error}; install the target module and use "
+            "an importable module:attribute (not a file path)"
+        ) from error
     scenario = value() if callable(value) else value
     if not isinstance(scenario, Scenario):
         raise TypeError("scenario target must be a Scenario or a zero-argument Scenario factory")
@@ -74,12 +80,18 @@ def fingerprint(scenario: Scenario) -> dict[str, Any]:
         "langsmith",
     ):
         dependencies[name] = metadata.version(name)
-    revision = subprocess.run(
-        ["git", "-C", str(package), "rev-parse", "HEAD"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    source_revision = None
+    try:
+        revision = subprocess.run(
+            ["git", "-C", str(package), "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if revision.returncode == 0:
+            source_revision = revision.stdout.strip()
+    except FileNotFoundError:
+        pass  # Provenance is optional; compatibility hashes remain mandatory.
     return {
         "scenario": scenario.name,
         "version": scenario.version,
@@ -87,7 +99,7 @@ def fingerprint(scenario: Scenario) -> dict[str, Any]:
         "fixture_hash": digest(scenario.backend.describe()),
         "dependencies": dependencies,
         "python": platform.python_version(),
-        "source_revision": revision.stdout.strip() if revision.returncode == 0 else None,
+        "source_revision": source_revision,
         "checkpoint": {"backend": "sqlite", "durability": "sync", "async": scenario.asynchronous},
     }
 

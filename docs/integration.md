@@ -1,5 +1,54 @@
 # Python integration contract
 
+## Start with the synthetic external-style order workflow
+
+Install a reviewed wheel into an isolated supported project using the README steps.
+Copy `examples/` from the source archive and run its pytest test, CLI campaign and
+replay with the same importable `examples.order_adapter:corrected` target. These
+files are synthetic, repository-authored MIT examples; no external adoption is claimed.
+
+`order_app.py` owns a sequential shipment workflow and committed SQLite writes,
+and can run without Fracture. Its builder accepts a write callback and optional
+checkpointer. `order_adapter.py` wraps that callback with public `action` and
+`observe_commit`, supplies the case-specific business path, and passes Fracture's
+checkpointer into the builder. There is no demo import or private context access.
+
+This is not a one-line integration: the adapter includes all six fixture methods,
+a stable `(order-001, ship, shipment)` boundary identity, independent receipt
+verification by SELECT after commit, two business assertions, and an explicit
+`LangGraphDriver(error_resumes=2, restart_on_process_exit=True)` policy. The business
+database is `business.sqlite`, separate from Fracture's checkpoint and controller
+files. No approval step is modeled; its fixture rejects unexpected approvals.
+
+The planted non-idempotent control inserts another shipment on retry. Its baseline
+passes, but response loss and process termination yield two durable rows. The
+corrected application queries by stable order ID and inserts only if absent inside
+`BEGIN IMMEDIATE`; this fixes transaction semantics, not merely wrapper call counts.
+This tiny fixture uses a fixed payload per operation. A real application must also
+reject idempotency-key reuse with changed payloads, enforce its own constraints,
+and test its actual recovery policy. No generic adapter framework or plugin is required.
+
+### Troubleshooting the adoption path
+
+- Target not found: install your application package or set `PYTHONPATH` to its
+  parent; use `module:attribute`, not a filename. Copy all example files together.
+- Spawn/pickling failure: define factory, fixture and driver classes at module scope;
+  pass configuration rather than live connections. Locally defined graph nodes and
+  wrapped writes are allowed because the factory creates them inside each worker.
+  Script entrypoints must use `if __name__ == "__main__":`.
+- Fixture failure: supply callable methods listed below; use fresh disposable data
+  and an authoritative verifier, not call counts or a response alone.
+- Existing output: choose another output path. Evidence is never overwritten.
+- Replay mismatch: reproduce the same source, fixture, Python patch version,
+  dependency versions and recovery configuration. Git is optional provenance only;
+  its absence does not bypass source/environment checks. Preserve the original
+  evidence and start a new campaign for changed inputs.
+- Pytest temp permission failure: select a fresh writable `--basetemp` beneath an
+  existing parent directory; pytest owns that directory and may clear it on reuse.
+
+Targets and replay execute trusted Python, without sandboxing. Fixture code must
+use disposable data; artifacts may contain state or secrets. Redact before sharing.
+
 ## Scenario construction
 
 `Scenario(name, workflow, backend, driver, assertions, ...)` is ordinary Python
@@ -35,21 +84,28 @@ be reconstructed should be moved into its source before claiming replay support.
 
 The bundled fixture uses `application.sqlite`; Fracture reserves
 `controller.sqlite`, `checkpoints.sqlite`, and `case.json` in each case directory.
-Only the bundled fixture currently has validated process-exit support. For an
+The bundled support and synthetic order SQLite fixtures have validated process-exit support. For an
 external service, returning a response or counting wrapper calls is not sufficient
 to implement `verify_commit`. Never mark unsupported commit visibility as supported.
 
 ## Action instrumentation
 
-Actual example from the installed support fixture:
+Example adapter instrumentation (the full fixture is in `examples/order_adapter.py`):
 
 ```python
 from fracture import action, observe_commit
-from fracture.demo import identity
 
-# identity(operation, *args, **kwargs) returns (operation, "primary").
-# create_ticket in fracture.demo is decorated with:
-# @action("create_ticket", identity=identity, commit_visible=True)
+
+def identity(operation):
+    return operation, "shipment"
+
+
+# Inside the importable workflow factory, where directory is case-specific:
+@action("ship", identity=identity, commit_visible=True)
+def write(operation):
+    receipt = application_write(operation)  # returns only after durable commit
+    observe_commit(receipt)  # fixture independently reads and verifies the receipt
+    return receipt
 ```
 
 Use a distinct stable `site` for each logical action location. Your resolver receives

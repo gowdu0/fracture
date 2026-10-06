@@ -32,3 +32,24 @@ a resettable write backend and inspectable commit evidence, or clarification of
 the first candidate's license from its owner. Do not contact maintainers without
 user authorization. Integrate through fixtures, wrappers, and persistence wiring;
 record those changes separately from any necessary business-logic changes.
+
+## 2026-10-05 synthetic adoption slice
+
+`examples/order_app.py` and `examples/order_adapter.py` replace the demo-dependent
+pytest example with a separately structured, repository-authored synthetic application
+and public-API adapter. They are newly authored under this repository's MIT license,
+not copied from any external source revision. No external workflow was modified or
+executed; the exact starting repository revision is
+`ab2eab4571eabffb39b6b962b916aad46fa07c39`.
+
+The previous licensed candidates lacked durable business writes, and the candidate
+with writes had unresolved licensing. This slice therefore takes the explicitly
+permitted synthetic fallback and leaves **Milestone 2 incomplete**. No independent
+bug discovery, user validation or production safety is claimed. Synthetic integration
+measurements and executed checks are recorded in evidence.md; the zero-file figures
+above refer to genuine independent integration and remain accurate.
+
+The next recommended milestone is one licensed independently authored sequential
+workflow with existing resettable durable writes, integrated and measured through
+these public APIs. Current diagnostics and text artifacts suffice; no viewer/UI
+is justified by the measured integration friction in this slice.

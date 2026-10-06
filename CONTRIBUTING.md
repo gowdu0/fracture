@@ -19,3 +19,15 @@ faults as passes. Record dependency/version changes and rerun the semantics spik
 The MIT license applies to contributions. Do not commit credentials, actual
 customer data, generated databases, or bulky run artifacts. Keep captured examples
 synthetic and label planted defects. Public APIs are experimental at version 0.1.
+
+For this release slice also run the synthetic example, artifact checks, reproducible
+build check and locked/resolved audits in [the validation guide](docs/validation-guide.md).
+Keep exact compatibility pins; the urllib3 minimum is a reviewed advisory fix, not
+an expansion of framework support. Distribution metadata and lock version must agree.
+`src/fracture/py.typed` exposes downstream typing; verify from installed artifacts.
+
+Use only trusted scenario/replay targets and disposable fixtures. Generated artifacts
+may contain application state or secrets. Do not upload real customer data. Manual
+release preparation retains tested artifacts and evidence; it does not publish or
+push tags. Follow [the release checklist](docs/release-checklist.md) for the explicitly
+approved publication boundary.
